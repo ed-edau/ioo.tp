@@ -28,7 +28,7 @@ public class JFormularioAVencer extends JFormularioBase implements IVistaDeposit
 	
 	public JFormularioAVencer(AdministradorPagos modelo){
 		super(modelo);
-		this.setTitle("Cheques Próximos a Vencer (30 días)");
+		this.setTitle("Cheques Próximos a Vencer (prox. 10 días)");
 		this.setSize(345, 200);
 		this.setLocation(720, 220);
 		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);

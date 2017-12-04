@@ -22,30 +22,39 @@ public class AdministradorPagos extends Observado {
 	 * 
 	 */
 	
-	public void registrarChequeTercero(ChequeTerceros cheque){
+	public void registrarChequeTercero(Cheque cheque){
 		
 		int i = 0;
-		
-		// inserto los cheques ordenados por su monto descendente en la tabla "disponibles"
-		if (this.disponibles.size() > 0)
-			while (this.disponibles.size() > i && this.disponibles.get(i).getMonto() >= cheque.getMonto())
-				i++;
-		if (this.disponibles.size() <= i)
-			this.disponibles.add(cheque);
-		else this.disponibles.add(i, cheque);
-		
-		// si están por vencer, los inserto en la tabla "avencer"
 		LocalDate hoy = LocalDate.now();
-		if(cheque.getFechaEmision().isBefore(hoy.minusDays(30)))
+		
+		// inserto los cheques no vencidos ordenados por su monto descendente en la tabla "disponibles"
+		
+		if (cheque.getFechaEmision().plusDays(30).isAfter(hoy.minusDays(1))){			
+			if (this.disponibles.size() > 0)
+				while (this.disponibles.size() > i && this.disponibles.get(i).getMonto() >= cheque.getMonto())
+					i++;
+			if (this.disponibles.size() <= i)
+				this.disponibles.add(cheque);
+			else this.disponibles.add(i, cheque);
+		}
+		
+		/*
+		 *  si están por vencer, los inserto en la tabla "avencer"
+		 *  deben estar en los últimos 10 días antes de vencer >
+		 *  (fechaHoy - 10) < (fechaEmision + 30) < (fechaHoy)
+		 */
+		
+		if(cheque.getFechaEmision().plusDays(30).isAfter(hoy.minusDays(1)) && cheque.getFechaEmision().plusDays(30).isBefore(hoy.plusDays(10)))
 			this.avencer.add(cheque);
 		
 		// todos los cheques van al log
+		
 		this.cheques.add(cheque);
 		
 		this.notificarObservadores();
 	}
 	
-	public void depositarChequeTercero(ChequeTerceros cheque){
+	public void depositarChequeTercero(Cheque cheque){
 		this.depositos.add(cheque);
 		this.notificarObservadores();
 	}
@@ -78,6 +87,7 @@ public class AdministradorPagos extends Observado {
 	
 	public void pagarCheque(Cheque cheque){
 		this.pagos.add(cheque);
+		this.cheques.add(cheque);
 		if (cheque.getTipo() == "Propio")
 			this.numero.setUltimoNumero();
 		this.notificarObservadores();
@@ -85,7 +95,6 @@ public class AdministradorPagos extends Observado {
 	
 	public void borrarChequesParaPagar(){
 		this.cheques.removeAll(this.paraPagar);
-		this.cheques.addAll(this.pagos);
 		this.disponibles.removeAll(this.paraPagar);
 		this.avencer.removeAll(this.paraPagar);
 		this.paraPagar.clear();
